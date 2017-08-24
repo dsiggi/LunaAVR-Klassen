@@ -12,77 +12,69 @@ Class HPDL1414
   '**************************************************************************
   
   'Die Klasse initalisieren
->procedure Init()
-D0.mode = output,low
-D1.mode = output,low
-D2.mode = output,low
-D3.mode = output,low
-D4.mode = output,low
-D5.mode = output,low
-D6.mode = output,low
-WR.mode = output,low
-A0.mode = output,low
-A1.mode = output,low
-
-WR = 1
-EndProc
+  procedure Init()
+    D0.mode = output,low
+    D1.mode = output,low
+    D2.mode = output,low
+    D3.mode = output,low
+    D4.mode = output,low
+    D5.mode = output,low
+    D6.mode = output,low
+    WR.mode = output,low
+    A0.mode = output,low
+    A1.mode = output,low
+    
+    WR = 1
+  EndProc
   
   'Ein Zeichen an  einer bestimmten Stelle ausgeben
->procedure Char(Stelle as byte, Zeichen as byte)
-SetPosition(Stelle)
-
-WR = 0
-
-D0 = Zeichen.0
-D1 = Zeichen.1
-D2 = Zeichen.2
-D3 = Zeichen.3
-D4 = Zeichen.4
-D5 = Zeichen.5
-D6 = Zeichen.6
-
-WR = 1
-endproc
+  procedure Char(Stelle as byte, Zeichen as byte)
+    SetPosition(Stelle)
+    
+    WR = 0
+    
+    D0 = Zeichen.0
+    D1 = Zeichen.1
+    D2 = Zeichen.2
+    D3 = Zeichen.3
+    D4 = Zeichen.4
+    D5 = Zeichen.5
+    D6 = Zeichen.6
+    
+    WR = 1
+  endproc
   
   'Einen String von links nach rechts ausgeben
->procedure FromLeft(Text as string)
-dim counter,bytes(3) as byte
-
-for counter = 3 downto 0
-SetPosition(counter)
-WR = 0
-
-bytes(0) = Text.byteValue(4)
-bytes(1) = Text.byteValue(3)
-bytes(2) = Text.byteValue(2)
-bytes(3) = Text.byteValue(1)
-
-Char(counter, bytes(counter))
-
-WR = 1
-
-next
-endproc
+  procedure FromLeft(Text as string)
+    dim counter,bytes(3) as byte
+    
+    for counter = 3 downto 0
+      SetPosition(counter)
+      
+      bytes(0) = Text.byteValue(4)
+      bytes(1) = Text.byteValue(3)
+      bytes(2) = Text.byteValue(2)
+      bytes(3) = Text.byteValue(1)
+      
+      Char(counter, bytes(counter))
+    next
+  endproc
   
   'Einen String vonr rechts nach links ausgeben
->procedure FromRight(Text as string)
-dim counter,bytes(3) as byte
-
-for counter = 0 to 3
-SetPosition(counter)
-WR = 0
-
-bytes(0) = Text.byteValue(1)
-bytes(1) = Text.byteValue(2)
-bytes(2) = Text.byteValue(3)
-bytes(3) = Text.byteValue(4)
-
-Char(counter, bytes(counter))
-
-WR = 1
-
-next
-endproc
+  procedure FromRight(Text as string)
+    dim counter,bytes(3) as byte
+    
+    for counter = 0 to 3
+      SetPosition(counter)
+      
+      bytes(0) = Text.byteValue(1)
+      bytes(1) = Text.byteValue(2)
+      bytes(2) = Text.byteValue(3)
+      bytes(3) = Text.byteValue(4)
+      
+      Char(counter, bytes(counter))
+    next
+  endproc
   
   'Interne Prozedur um die passende Anzeige zu wählen
 >procedure SetPosition(Position as byte)
