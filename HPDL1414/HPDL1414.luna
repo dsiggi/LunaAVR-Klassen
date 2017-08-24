@@ -1,20 +1,33 @@
 Class HPDL1414
+  '**************************************************************************
+  '* Name        : HPDL1414
+  '* Function    : LCD
+  '* Hardware    : HPDL-1414
+  '**************************************************************************
+  '* Compiler    : lunaAVR 2017.r2.8 (or newer)
+  '**************************************************************************
+  '* Author      : Daniel Siegmanski
+  '* Date/Version: 24.08.2017
+  '* www         : http:s://github.com/dsiggi/LunaAVR-Klassen
+  '**************************************************************************
   
-  procedure Init()
-    D0.mode = output,low
-    D1.mode = output,low
-    D2.mode = output,low
-    D3.mode = output,low
-    D4.mode = output,low
-    D5.mode = output,low
-    D6.mode = output,low
-    WR.mode = output,low
-    A0.mode = output,low
-    A1.mode = output,low
-    
-    WR = 1
-  EndProc
+  'Die Klasse initalisieren
+>procedure Init()
+D0.mode = output,low
+D1.mode = output,low
+D2.mode = output,low
+D3.mode = output,low
+D4.mode = output,low
+D5.mode = output,low
+D6.mode = output,low
+WR.mode = output,low
+A0.mode = output,low
+A1.mode = output,low
+
+WR = 1
+EndProc
   
+  'Ein Zeichen an  einer bestimmten Stelle ausgeben
 >procedure Char(Stelle as byte, Zeichen as byte)
 SetPosition(Stelle)
 
@@ -31,31 +44,27 @@ D6 = Zeichen.6
 WR = 1
 endproc
   
-  procedure FromLeft(Text as string)
-    dim counter,bytes(3) as byte
-    
-    for counter = 3 downto 0
-      SetPosition(counter)
-      WR = 0
-      
-      bytes(0) = Text.byteValue(4)
-      bytes(1) = Text.byteValue(3)
-      bytes(2) = Text.byteValue(2)
-      bytes(3) = Text.byteValue(1)
-      
-      D0 = bytes(counter).0
-      D1 = bytes(counter).1
-      D2 = bytes(counter).2
-      D3 = bytes(counter).3
-      D4 = bytes(counter).4
-      D5 = bytes(counter).5
-      D6 = bytes(counter).6
-      
-      WR = 1
-      
-    next
-  endproc
+  'Einen String von links nach rechts ausgeben
+>procedure FromLeft(Text as string)
+dim counter,bytes(3) as byte
+
+for counter = 3 downto 0
+SetPosition(counter)
+WR = 0
+
+bytes(0) = Text.byteValue(4)
+bytes(1) = Text.byteValue(3)
+bytes(2) = Text.byteValue(2)
+bytes(3) = Text.byteValue(1)
+
+Char(counter, bytes(counter))
+
+WR = 1
+
+next
+endproc
   
+  'Einen String vonr rechts nach links ausgeben
 >procedure FromRight(Text as string)
 dim counter,bytes(3) as byte
 
@@ -68,19 +77,14 @@ bytes(1) = Text.byteValue(2)
 bytes(2) = Text.byteValue(3)
 bytes(3) = Text.byteValue(4)
 
-D0 = bytes(counter).0
-D1 = bytes(counter).1
-D2 = bytes(counter).2
-D3 = bytes(counter).3
-D4 = bytes(counter).4
-D5 = bytes(counter).5
-D6 = bytes(counter).6
+Char(counter, bytes(counter))
 
 WR = 1
 
 next
 endproc
   
+  'Interne Prozedur um die passende Anzeige zu wählen
 >procedure SetPosition(Position as byte)
 if Position.0 = 1 then
 A0 = 1
