@@ -10,6 +10,38 @@ Class HPDL1414
   '* Date/Version: 24.08.2017
   '* www         : http:s://github.com/dsiggi/LunaAVR-Klassen
   '**************************************************************************
+  '* Benutzung:
+  '*
+  '* Im Hauptprogramm müssen die Pins des/der HPDL(s)1414 definiert werden:
+  '* #define D0 as PortB.0
+  '* #define D1 as portb.1
+  '* #define D2 as portb.2
+  '* #define D3 as Portb.3
+  '* #define D4 as portb.4
+  '* #define D5 as portb.5
+  '* #define D6 as portd.4
+  
+  '* #define A0 as portd.5
+  '* #define A1 as portd.3
+  '* #define WR1 as portd.2
+  '* #define WR2 as portd.7 'Hier kann bis zu WR10 definiert werden
+  '*
+  '* Nun muss noch die Anzahl der zu verwendenden HPDLs angeben werden:
+  '*
+  '* #define HPDL1414_DEVS		as 2
+  '*
+  '* Nun die Klasse einbinden:
+  '*
+  '* #include "/Pfad/zur/Klasse/HPDL1414/HPDL1414.luna"
+  '*
+  '* Nun die Klasse initaliseren:
+  '*
+  '* HPDL1414.Init()
+  '*
+  '* Jetzt kann z.b. ein Text von links nach rechts ausgegeben werden:
+  '*
+  '* HPDL.FromLeft("MEIN TEXT")
+  '**************************************************************************
   
   'Die Klasse initalisieren
   procedure Init()
@@ -20,18 +52,65 @@ Class HPDL1414
     D4.mode = output,low
     D5.mode = output,low
     D6.mode = output,low
-    WR.mode = output,low
     A0.mode = output,low
     A1.mode = output,low
     
-    WR = 1
+    #if HPDL1414_DEVS = 0 
+      #error "HPDL1414: Es muss mindestens ein Device gewählt werden."
+    #endif
+    #if HPDL1414_DEVS >= 1 
+      WR1.mode = output,low
+      WR1 = 1
+    #endif
+    #if HPDL1414_DEVS >= 2 
+      WR2.mode = output,low
+      WR2 = 1
+    #endif
+    #if HPDL1414_DEVS >= 3 
+      WR3.mode = output,low
+      WR3 = 1
+    #endif
+    #if HPDL1414_DEVS >= 4 
+      WR4.mode = output,low
+      WR4 = 1
+    #endif
+    #if HPDL1414_DEVS >= 5 
+      WR5.mode = output,low
+      WR5 = 1
+    #endif
+    #if HPDL1414_DEVS >= 6 
+      WR6.mode = output,low
+      WR6 = 1
+    #endif
+    #if HPDL1414_DEVS >= 7 
+      WR7.mode = output,low
+      WR7 = 1
+    #endif
+    #if HPDL1414_DEVS >= 8 
+      WR8.mode = output,low
+      WR8 = 1
+    #endif
+    #if HPDL1414_DEVS >= 9 
+      WR9.mode = output,low
+      WR9 = 1
+    #endif
+    #if HPDL1414_DEVS = 10
+      WR10.mode = output,low
+      WR10 = 1
+    #endif
+    #if HPDL1414_DEVS > 10 
+      #error "HPDL1414: Es werden maximal 10 Devices unterstützt."
+    #endif
   EndProc
   
   'Ein Zeichen an  einer bestimmten Stelle ausgeben
-  procedure Char(Stelle as byte, Zeichen as byte)
+  procedure Char(Device as byte, Stelle as byte, Zeichen as byte)
     SetPosition(Stelle)
+    SetWR(Device, 0)
     
-    WR = 0
+    if CheckChar(Zeichen) = 32 then
+      Zeichen = 32
+    endif
     
     D0 = Zeichen.0
     D1 = Zeichen.1
@@ -41,54 +120,178 @@ Class HPDL1414
     D5 = Zeichen.5
     D6 = Zeichen.6
     
-    WR = 1
+    SetWR(Device, 1)
   endproc
   
   'Einen String von links nach rechts ausgeben
   procedure FromLeft(Text as string)
-    dim counter,bytes(3) as byte
+    dim counter_postext,posdev,device as byte
     
-    for counter = 3 downto 0
-      SetPosition(counter)
+    'Aktuelle Position auf dem HPDL1414
+    posdev = 3
+    
+    for counter_postext = 1 to Text.Len
+      'Das passende HPDL1414 auswählen
+      select case counter_postext
+      case 1 to 4
+        device = 1
+      case 5 to 8
+        device = 2
+      case 9 to 12
+        device = 3
+      case 13 to 16
+        device = 4
+      case 17 to 20
+        device = 5
+      case 21 to 24
+        device = 6
+      case 25 to 28
+        device = 7
+      case 29 to 32
+        device = 8
+      case 33 to 36
+        device = 9
+      case 37 to 40
+        device = 10
+      endSelect
       
-      bytes(0) = Text.byteValue(4)
-      bytes(1) = Text.byteValue(3)
-      bytes(2) = Text.byteValue(2)
-      bytes(3) = Text.byteValue(1)
+      'Wenn wir mehr Stellen im String wie Anzeigen haben, breche nach der letzen möglichen Stelle ab
+      if device > HPDL1414_DEVS then
+        exit
+      endif
       
-      Char(counter, bytes(counter))
+      Char(device, posdev, Text.byteValue(counter_postext))
+      
+      if posdev > 0 then
+        posdev = posdev - 1
+      else
+        posdev = 3
+      endif
     next
   endproc
   
-  'Einen String vonr rechts nach links ausgeben
+  'Einen String von rechts nach links ausgeben
   procedure FromRight(Text as string)
-    dim counter,bytes(3) as byte
+    dim counter_postext,posdev,device as byte
     
-    for counter = 0 to 3
-      SetPosition(counter)
+    'Aktuelle Position auf dem HPDL1414
+    posdev = 0
+    
+    for counter_postext = 1 to Text.Len
+      'Das passende HPDL1414 auswählen
+      select case counter_postext
+      case 1 to 4
+        device = HPDL1414_DEVS
+      case 5 to 8
+        device = HPDL1414_DEVS-1
+      case 9 to 12
+        device = HPDL1414_DEVS-2
+      case 13 to 16
+        device = HPDL1414_DEVS-3
+      case 17 to 20
+        device = HPDL1414_DEVS-4
+      case 21 to 24
+        device = HPDL1414_DEVS-5
+      case 25 to 28
+        device = HPDL1414_DEVS-6
+      case 29 to 32
+        device = HPDL1414_DEVS-7
+      case 33 to 36
+        device = HPDL1414_DEVS-8
+>case 37 to 40
+device = HPDL1414_DEVS-9
+      endSelect
       
-      bytes(0) = Text.byteValue(1)
-      bytes(1) = Text.byteValue(2)
-      bytes(2) = Text.byteValue(3)
-      bytes(3) = Text.byteValue(4)
+      'Wenn wir mehr Stellen im String wie Anzeigen haben, breche nach der letzen möglichen Stelle ab
+      if device < 1 then
+        exit
+      endif
       
-      Char(counter, bytes(counter))
+      Char(device, posdev, Text.byteValue(counter_postext))
+      
+      if posdev < 3 then
+        posdev = posdev + 1
+      else
+        posdev = 0
+      endif
     next
   endproc
   
   'Interne Prozedur um die passende Anzeige zu wählen
->procedure SetPosition(Position as byte)
-if Position.0 = 1 then
-A0 = 1
-else
-A0 = 0
-endif
-
-if Position.1 = 1 then
-A1 = 1
-else
-A1 = 0
-endif
-endproc
+  procedure SetPosition(Position as byte)
+    if Position.0 = 1 then
+      A0 = 1
+    else
+      A0 = 0
+    endif
+    
+    if Position.1 = 1 then
+      A1 = 1
+    else
+      A1 = 0
+    endif
+  endproc
   
+  'Passende WR-Pin für das gewählte Device setzen
+  procedure SetWR(Device as byte, Status as byte)
+    #if HPDL1414_DEVS >= 1
+      if Device = 1 then
+        WR1 = Status
+      endif
+    #endif
+    #if HPDL1414_DEVS >= 2
+      if Device = 2 then
+        WR2 = Status
+      endif
+    #endif
+    #if HPDL1414_DEVS >= 3
+      if Device = 3 then
+        WR3 = Status
+      endif
+    #endif
+    #if HPDL1414_DEVS >= 4
+      if Device = 4 then
+        WR4 = Status
+      endif
+    #endif
+    #if HPDL1414_DEVS >= 5
+      if Device = 5 then
+        WR5 = Status
+      endif
+    #endif
+    #if HPDL1414_DEVS >= 6
+      if Device = 6 then
+        WR6 = Status
+      endif
+    #endif
+    #if HPDL1414_DEVS >= 7
+      if Device = 7 then
+        WR7 = Status
+      endif
+    #endif
+    #if HPDL1414_DEVS >= 8
+      if Device = 8 then
+        WR8 = Status
+      endif
+    #endif
+    #if HPDL1414_DEVS >= 9
+      if Device = 9 then
+        WR9 = Status
+      endif
+    #endif
+    #if HPDL1414_DEVS =10
+      if Device = 10 then
+        WR10 = Status
+      endif
+    #endif
+  	EndProc
+  
+  'Überprüft ob das auszugebende Zeichen auch unterstützt wird, ansosten wir ein Leerzeichen ausgeben
+  function CheckChar(Char as byte) as byte
+    if Char < 32 and Char > 96 then
+      return 32
+    else
+      return 0
+    endif
+  EndFunc
 EndClass
