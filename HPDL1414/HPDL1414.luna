@@ -284,11 +284,11 @@ device = HPDL1414_DEVS-9
         WR10 = Status
       endif
     #endif
-  	EndProc
+  EndProc
   
   'Überprüft ob das auszugebende Zeichen auch unterstützt wird, ansosten wir ein Leerzeichen ausgeben
   function CheckChar(Char as byte) as byte
-    if Char < 32 and Char > 96 then
+    if Char < 32 or Char > 96 then
       return 32
     else
       return 0
